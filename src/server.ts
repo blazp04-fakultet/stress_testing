@@ -2,7 +2,6 @@ import { Application } from "@oak/oak";
 import { type Context } from "@oak/oak";
 import { config } from "./core/config/mod.ts";
 import v1Router from "./api/v1/routes/index.ts";
-import { connectToDatabase } from "./core/db/client.ts";
 import { initializeMigrations } from "./core/db/migrations/migrations.ts";
 import BaseRepository from "./core/db/repositories/baseRepository.ts";
 import { BaseCachedRepository } from "./core/cache/repository/baseIpRepository.ts";
@@ -11,6 +10,7 @@ import MissionCachedRepository from "./core/cache/repository/missionRepository.t
 import { ApiKeyRepository } from "./core/db/repositories/apiKeyRepository.ts";
 import NewsService from "./core/services/newsService.ts";
 import { NewsRepository } from "./core/db/repositories/newsRepository.ts";
+import { connectToDatabase, getConnection, pool } from "./core/db/client.ts";
 
 const app = new Application();
 
@@ -66,7 +66,7 @@ export const startServer = async () => {
   // database
   baseRepository = new BaseRepository(dbClient);
   apiKeyRepository = new ApiKeyRepository(dbClient);
-  newsrepository = new NewsRepository(dbClient);
+  newsrepository = new NewsRepository(pool);
 
   // cache
   baseCachedRepository = new BaseCachedRepository();

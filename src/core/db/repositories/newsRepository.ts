@@ -1,5 +1,5 @@
 // apiKeys.ts
-import { Client } from "jsr:@jersey/postgres";
+import { Client, Pool } from "jsr:@jersey/postgres";
 import { News } from "../../models/dto/newsModel.ts";
 
 export interface CreateApiKeyParams {
@@ -9,15 +9,17 @@ export interface CreateApiKeyParams {
 }
 
 export class NewsRepository {
-  client: Client;
+  pool: Pool;
 
-  constructor(client: Client) {
-    this.client = client;
+  constructor(pool: Pool) {
+    this.pool = pool;
   }
 
   async getNews(autor: number): Promise<News[] | null> {
-    const result = await this.client.queryObject<News>(
-      `
+    const connection = await this.pool.connect();
+    try {
+      const result = await connection.queryObject<News>(
+        `
       SELECT 
         news_id,
         title,
@@ -26,9 +28,12 @@ export class NewsRepository {
       FROM news
       WHERE author_id = $1 
       `,
-      [autor]
-    );
+        [autor]
+      );
 
-    return result.rows;
+      return result.rows;
+    } finally {
+      connection.release();
+    }
   }
 }

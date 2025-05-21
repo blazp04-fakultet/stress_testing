@@ -1,7 +1,7 @@
 import { type Context } from "@oak/oak";
-import { setBaseCacheIp } from "../../../core/cache/repository/baseIpRepository.ts";
-import { setMissionCacheStatus } from "../../../core/cache/repository/missionrepository.ts";
 import { HealthCheckDTO } from "../../../core/models/dto/healthModel.ts";
+import { healthService } from "../../../server.ts";
+import { Console } from "node:console";
 
 export const postHealth = async (ctx: Context) => {
   try {
@@ -25,15 +25,13 @@ export const postHealth = async (ctx: Context) => {
 
     const missionStatus = body.status;
 
-    //TODO: Napraviti neku implementaciju da ovo spremim i u pravu bazu podataka
-    setBaseCacheIp({
-      ip: ip,
-      droneId: droneId,
-    });
-    setMissionCacheStatus({
-      droneId: droneId,
-      status: missionStatus,
-    });
+    if (!missionStatus) {
+      ctx.response.status = 400;
+      ctx.response.body = { error: "Invalid request body" };
+      return;
+    }
+
+    healthService.healthCheck(droneId, ip, missionStatus);
 
     ctx.response.status = 200;
     ctx.response.body = { message: "OK" };

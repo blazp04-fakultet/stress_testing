@@ -8,12 +8,16 @@ export interface CreateApiKeyParams {
   role?: string;
 }
 
-export async function getNews(
-  client: Client,
-  autor: number
-): Promise<News[] | null> {
-  const result = await client.queryObject<News>(
-    `
+export class NewsRepository {
+  client: Client;
+
+  constructor(client: Client) {
+    this.client = client;
+  }
+
+  async getNews(autor: number): Promise<News[] | null> {
+    const result = await this.client.queryObject<News>(
+      `
       SELECT 
         news_id,
         title,
@@ -22,8 +26,9 @@ export async function getNews(
       FROM news
       WHERE author_id = $1 
       `,
-    [autor]
-  );
+      [autor]
+    );
 
-  return result.rows;
+    return result.rows;
+  }
 }

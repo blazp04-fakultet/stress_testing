@@ -1,12 +1,12 @@
 // src/core/auth/apiKeyAuth.ts
 import { type Context } from "@oak/oak";
-import { connectToDatabase } from "../db/client.ts";
-import { encryptApiKey } from "../utils/apiKeyUtils.ts";
+import { encryptApiKey } from "../../utils/apiKeyUtils.ts";
 import {
   setCachedApiKey,
   validateApiKeyCached,
-} from "../cache/repository/apiKeyRepository.ts";
-import { ApiKey } from "../models/dto/apiKey.ts";
+} from "../../cache/repository/apiKeyRepository.ts";
+import { ApiKey } from "../../models/dto/apiKey.ts";
+import { apiKeyRepository } from "../../../server.ts";
 
 export const apiKeyAuthMiddleware = async (
   ctx: Context,
@@ -19,7 +19,6 @@ export const apiKeyAuthMiddleware = async (
     return;
   }
 
-  const dbClient = await connectToDatabase();
   const encrypted = encryptApiKey(providedKey);
 
   let validApiKey: ApiKey | null = await validateApiKeyCached(
@@ -29,8 +28,8 @@ export const apiKeyAuthMiddleware = async (
 
   if (!validApiKey) {
     console.log("API Key not found in cache, adding to DB...");
-    validApiKey = await validateApiKey(
-      dbClient,
+    //TODO: Završiti ovo
+    validApiKey = await apiKeyRepository.validateApiKey(
       encrypted.secret,
       encrypted.key
     );

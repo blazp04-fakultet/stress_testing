@@ -6,6 +6,7 @@ import {
   getCachedNews,
   setCachedApiKey,
 } from "../../../core/cache/repository/newsrepository.ts";
+import { newsService } from "../../../server.ts";
 
 export const postNewsDetails = async (ctx: Context) => {
   try {
@@ -18,26 +19,7 @@ export const postNewsDetails = async (ctx: Context) => {
       return;
     }
 
-    //! Rezultati sa cachingom
-    const cachedNews = await getCachedNews(body.id);
-    if (cachedNews) {
-      ctx.response.status = 200;
-      ctx.response.body = { newsList: cachedNews };
-      ctx.response.type = "json";
-      return;
-    }
-
-    //! Rezultati bez cachinga
-    const dbClient = await connectToDatabase();
-    const newsList: News[] | null = await getNews(dbClient, body.id);
-    if (!newsList) {
-      ctx.response.status = 404;
-      ctx.response.body = { error: "News not found" };
-      return;
-    }
-    //! Spremanje u cache
-    await setCachedApiKey({ id: body.id, news: newsList });
-
+    const newsList: News[] | null = await newsService.getNews(body.id);
     if (!newsList) {
       ctx.response.status = 404;
       ctx.response.body = { error: "News not found" };

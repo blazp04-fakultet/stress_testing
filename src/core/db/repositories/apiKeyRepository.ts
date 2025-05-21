@@ -7,14 +7,16 @@ export interface CreateApiKeyParams {
   key: string;
   role?: string;
 }
+export class ApiKeyRepository {
+  client: Client;
+  constructor(client: Client) {
+    this.client = client;
+  }
 
-export async function addApiKey(
-  client: Client,
-  params: CreateApiKeyParams
-): Promise<ApiKey> {
-  const { id, key, role = "user" } = params;
+  async addApiKey(params: CreateApiKeyParams): Promise<ApiKey> {
+    const { id, key, role = "user" } = params;
 
-  const query = `
+    const query = `
   INSERT INTO api_keys (
    id,
     key, 
@@ -30,26 +32,26 @@ export async function addApiKey(
     deleted_at
 `;
 
-  const result = await client.queryObject<ApiKey>(query, [id, key, role]);
+    const result = await this.client.queryObject<ApiKey>(query, [
+      id,
+      key,
+      role,
+    ]);
 
-  if (result.rows.length === 0) {
-    throw new Error("Failed to create API key");
+    if (result.rows.length === 0) {
+      throw new Error("Failed to create API key");
+    }
+
+    return result.rows[0];
   }
 
-  return result.rows[0];
-}
+  deleteApiKey() {
+    throw new Error("Method not implemented.");
+  }
 
-export function deleteApiKey() {
-  throw new Error("Method not implemented.");
-}
-
-export async function validateApiKey(
-  client: Client,
-  key: string,
-  id: string
-): Promise<ApiKey | null> {
-  const result = await client.queryObject<ApiKey>(
-    `
+  async validateApiKey(key: string, id: string): Promise<ApiKey | null> {
+    const result = await this.client.queryObject<ApiKey>(
+      `
       SELECT 
         id,
         key,
@@ -62,8 +64,9 @@ export async function validateApiKey(
         AND id = $2
         AND deleted_at IS NULL
       `,
-    [key, id]
-  );
+      [key, id]
+    );
 
-  return result.rows.length > 0 ? result.rows[0] : null;
+    return result.rows.length > 0 ? result.rows[0] : null;
+  }
 }

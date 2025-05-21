@@ -9,7 +9,7 @@ class NewsService {
   }
 
   public async getNews(id: number): Promise<News[] | null> {
-    const response = await this.newsRepository.getNews(id);
+    const response = await this.newsRepository.getNews(id, 1, 5);
     return response;
   }
 }

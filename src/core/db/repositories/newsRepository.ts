@@ -15,9 +15,14 @@ export class NewsRepository {
     this.pool = pool;
   }
 
-  async getNews(autor: number): Promise<News[] | null> {
+  async getNews(
+    author: number,
+    page: number = 1,
+    pageSize: number = 10
+  ): Promise<News[] | null> {
     const connection = await this.pool.connect();
     try {
+      const offset = (page - 1) * pageSize;
       const result = await connection.queryObject<News>(
         `
       SELECT 
@@ -27,8 +32,10 @@ export class NewsRepository {
         author_id
       FROM news
       WHERE author_id = $1 
+      ORDER BY news_id DESC
+      LIMIT $2 OFFSET $3
       `,
-        [autor]
+        [author, pageSize, offset]
       );
 
       return result.rows;
